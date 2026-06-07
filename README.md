@@ -37,17 +37,36 @@ An intelligent travel planning platform that generates personalized, budget-frie
 ## 📂 Project Structure
 
 ```
-Smart-Itinerary-Generator/
+SmartTrip-Planner/
 │
-├── frontend/        # Frontend application (React)
+├── frontend/                     # React frontend application
+│   ├── public/
+│   ├── src/
+│   │   ├── components/          # Reusable UI components
+│   │   ├── pages/               # Application pages
+│   │   ├── services/            # API calls and integrations
+│   │   ├── styles/              # Tailwind / CSS files
+│   │   └── App.js
 │   └── placeholder.txt
 │
-├── backend/         # Backend application (FastAPI)
+├── backend/                     # FastAPI backend application
+│   ├── app/
+│   │   ├── routes/              # API endpoints
+│   │   ├── models/              # Database models
+│   │   ├── services/            # Business logic
+│   │   ├── utils/               # Helper functions
+│   │   └── main.py
 │   └── placeholder.txt
+│
+├── database/                    # Database scripts
+│   └── schema.sql
+│
+├── docs/                        # Documentation
+│   └── architecture.md
 │
 ├── README.md
-└── .gitignore
-```
+├── .gitignore
+└── requirements.txt
 
 ---
 
