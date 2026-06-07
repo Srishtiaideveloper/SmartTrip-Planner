@@ -1,25 +1,39 @@
-# 🌍 Smart Itinerary Generator for Personalized Sustainable Travel Experiences
+# 🌍 SmartTrip Planner
 
-An intelligent travel planning platform that generates personalized, budget-friendly, and eco-friendly itineraries based on user preferences, helping users explore meaningful and sustainable travel experiences.
+### Smart Itinerary Generator for Personalized Sustainable Travel Experiences
+
+An AI-powered travel planning platform that uses multiple intelligent agents to generate personalized, eco-friendly travel recommendations and optimized itineraries based on user preferences and sustainability goals.
 
 ---
 
 ## 🚀 Features
 
-* **Personalized Itinerary Generation**
-  Creates customized travel plans based on user preferences, budget, and duration.
+* **User Authentication**
+  Secure registration and login using JWT-based authentication for personalized access.
 
-* **Smart Destination Recommendations**
-  Suggests destinations based on interests, season, and travel trends.
+* **Travel Preference Management**
+  Users can input preferences such as budget, trip duration, destination type, interests, and sustainability priorities.
 
-* **Sustainability Scoring**
-  Highlights eco-friendly travel options and promotes local tourism.
+* **Multi-Agent Recommendation Engine**
+  Multiple AI agents (Preference Agent, Destination Agent, Sustainability Agent) collaborate to analyze user inputs and generate accurate, personalized travel recommendations.
 
-* **Weather-Based Planning**
-  Adjusts itineraries according to real-time weather conditions.
+* **AI-Powered Itinerary Planner**
+  Generates optimized day-wise travel plans including destinations, activities, accommodations, and transportation options.
 
-* **Interactive Customization**
-  Allows users to modify and refine travel plans easily.
+* **Personalized Dashboard**
+  Allows users to save itineraries, view past recommendations, and manage travel plans efficiently.
+
+---
+
+## 🤖 AI Integration
+
+This project uses the **OpenAI API** to implement multiple intelligent agents:
+
+* **Recommendation Agent** – Analyzes user preferences and suggests suitable destinations
+* **Itinerary Planner Agent** – Generates structured, day-wise travel plans
+* **Sustainability Agent** – Evaluates eco-friendly options and promotes sustainable travel
+
+These agents work together to provide **context-aware, personalized, and intelligent travel experiences**.
 
 ---
 
@@ -31,6 +45,7 @@ An intelligent travel planning platform that generates personalized, budget-frie
 * **Database:** PostgreSQL
 * **Authentication:** JWT-based authentication
 * **Deployment:** Vercel (Frontend), Render (Backend)
+* **AI Integration:** OpenAI API
 
 ---
 
@@ -39,34 +54,22 @@ An intelligent travel planning platform that generates personalized, budget-frie
 ```
 SmartTrip-Planner/
 │
-├── frontend/                     # React frontend application
-│   ├── public/
-│   ├── src/
-│   │   ├── components/          # Reusable UI components
-│   │   ├── pages/               # Application pages
-│   │   ├── services/            # API calls and integrations
-│   │   ├── styles/              # Tailwind / CSS files
-│   │   └── App.js
+├── frontend/                     # React frontend
 │   └── placeholder.txt
 │
-├── backend/                     # FastAPI backend application
-│   ├── app/
-│   │   ├── routes/              # API endpoints
-│   │   ├── models/              # Database models
-│   │   ├── services/            # Business logic
-│   │   ├── utils/               # Helper functions
-│   │   └── main.py
+├── backend/                      # FastAPI backend
 │   └── placeholder.txt
 │
-├── database/                    # Database scripts
+├── database/                     # Database scripts
 │   └── schema.sql
 │
-├── docs/                        # Documentation
+├── docs/                         # Documentation
 │   └── architecture.md
 │
 ├── README.md
 ├── .gitignore
 └── requirements.txt
+```
 
 ---
 
@@ -78,14 +81,15 @@ Setup — coming soon
 
 ## 🎯 Project Goal
 
-The goal of this project is to simplify travel planning by providing intelligent, personalized, and sustainable travel recommendations while supporting local communities and promoting eco-conscious tourism.
+The goal of this project is to simplify travel planning by providing intelligent, personalized, and sustainable travel recommendations while supporting eco-friendly tourism and local communities.
 
 ---
 
 ## 📌 Future Enhancements
 
-* Integration of real-time APIs (weather, maps, travel data)
-* Advanced recommendation system for better personalization
-* User authentication and profile-based recommendations
+* Integration with real-time APIs (weather, maps, travel data)
+* Advanced multi-agent coordination for better recommendations
+* User profile-based personalization
 * Interactive UI for itinerary editing and sharing
 
+---
