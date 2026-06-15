@@ -39,11 +39,13 @@ These agents work together to provide **context-aware, personalized, and intelli
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** React.js
+* **Frontend:** React.js + Vite
 * **Styling:** Tailwind CSS
-* **Backend:** FastAPI
+* **Backend:** FastAPI (Python)
 * **Database:** PostgreSQL
 * **Authentication:** JWT-based authentication
+* **Charts:** Recharts
+* **Icons:** Lucide React
 * **Deployment:** Vercel (Frontend), Render (Backend)
 * **AI Integration:** OpenAI API
 
@@ -54,28 +56,71 @@ These agents work together to provide **context-aware, personalized, and intelli
 ```
 SmartTrip-Planner/
 │
-├── frontend/                     # React frontend
+├── frontend/                         # React frontend (Vite)
+│   ├── index.html                    # HTML entry point
+│   ├── package.json                  # Dependencies & scripts
+│   ├── vite.config.js                # Vite configuration
+│   ├── tailwind.config.js            # Tailwind CSS configuration
+│   ├── postcss.config.js             # PostCSS configuration
+│   └── src/
+│       ├── main.jsx                  # React entry point
+│       ├── App.jsx                   # Route definitions
+│       ├── index.css                 # Global styles & Tailwind directives
+│       ├── components/               # Reusable UI components
+│       │   ├── Navbar.jsx            # Responsive navigation bar
+│       │   ├── Hero.jsx              # Hero section with animations
+│       │   ├── Card.jsx              # Reusable feature/info card
+│       │   └── Footer.jsx            # Multi-column footer
+│       └── pages/                    # Page components
+│           ├── Home.jsx              # Landing page
+│           ├── About.jsx             # About & mission page
+│           ├── Dashboard.jsx         # Analytics dashboard
+│           └── Login.jsx             # Authentication page
+│
+├── backend/                          # FastAPI backend (coming soon)
 │   └── placeholder.txt
 │
-├── backend/                      # FastAPI backend
-│   └── placeholder.txt
-│
-├── database/                     # Database scripts
+├── database/                         # Database scripts
 │   └── schema.sql
 │
-├── docs/                         # Documentation
+├── docs/                             # Documentation
 │   └── architecture.md
 │
 ├── README.md
-├── .gitignore
-└── requirements.txt
+└── .gitignore
 ```
 
 ---
 
-## ⚙️ Setup
+## ⚙️ Setup & Installation
 
-Setup — coming soon
+### Prerequisites
+- Node.js (v18+)
+- npm (v9+)
+
+### Frontend Setup
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173/`
+
+### Available Pages
+
+| Page       | Route        | Description                              |
+|------------|--------------|------------------------------------------|
+| Home       | `/`          | Landing page with hero, features, CTA    |
+| About      | `/about`     | Mission, values, tech stack, team         |
+| Dashboard  | `/dashboard` | Analytics, charts, itineraries, eco-score |
+| Login      | `/login`     | Sign in / Sign up with social auth       |
 
 ---
 
@@ -88,7 +133,8 @@ The goal of this project is to simplify travel planning by providing intelligent
 ## 📌 Future Enhancements
 
 * Integration with real-time APIs (weather, maps, travel data)
-* Advanced multi-agent coordination for better recommendations
+* FastAPI backend with multi-agent AI coordination
+* PostgreSQL database with Supabase
 * User profile-based personalization
 * Interactive UI for itinerary editing and sharing
 
