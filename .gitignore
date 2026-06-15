@@ -1,0 +1,25 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build files
+dist/
+build/
+.next/
+
+# Python cache (for FastAPI backend)
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+.vscode/
+.AppleDouble
+.LSOverride
