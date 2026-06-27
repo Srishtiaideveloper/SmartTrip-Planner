@@ -1,0 +1,470 @@
+{
+  "info": {
+    "_postman_id": "smarttrip-planner-api-w4",
+    "name": "SmartTrip Planner API — Week 4",
+    "description": "Complete API collection for SmartTrip Planner backend (FastAPI). Covers authentication, trip CRUD, search, dashboard stats, and health check.\n\nIntern ID: 26100787\nWeek: 4 — Backend & API Development",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            },
+            "description": "Check if the server is running and healthy."
+          },
+          "response": [
+            {
+              "name": "200 — Server Healthy",
+              "originalRequest": {
+                "method": "GET",
+                "url": {
+                  "raw": "{{base_url}}/api/health",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"status\": \"healthy\",\n  \"service\": \"SmartTrip Planner API\",\n  \"version\": \"1.0.0\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"testPass123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user account. Returns a JWT token for immediate authentication."
+          },
+          "response": [
+            {
+              "name": "201 — User Created",
+              "originalRequest": {
+                "method": "POST",
+                "url": {
+                  "raw": "{{base_url}}/api/auth/register",
+                  "host": ["{{base_url}}"],
+                  "path": ["api", "auth", "register"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"token_type\": \"bearer\",\n  \"user\": {\n    \"id\": \"user-002\",\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\"\n  }\n}"
+            },
+            {
+              "name": "400 — Email Already Exists",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"detail\": \"An account with this email already exists\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"srishti@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Authenticate with email and password. Returns a JWT token."
+          },
+          "response": [
+            {
+              "name": "200 — Login Successful",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"token_type\": \"bearer\",\n  \"user\": {\n    \"id\": \"user-001\",\n    \"name\": \"Srishti\",\n    \"email\": \"srishti@example.com\"\n  }\n}"
+            },
+            {
+              "name": "401 — Invalid Credentials",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"detail\": \"Invalid email or password\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get the currently authenticated user's profile. Requires a valid JWT token."
+          },
+          "response": [
+            {
+              "name": "200 — Current User",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": \"user-001\",\n  \"name\": \"Srishti\",\n  \"email\": \"srishti@example.com\"\n}"
+            },
+            {
+              "name": "401 — Not Authenticated",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"detail\": \"Could not validate credentials\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Trips",
+      "item": [
+        {
+          "name": "List All Trips",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/trips",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips"]
+            },
+            "description": "List all trips for the authenticated user."
+          },
+          "response": [
+            {
+              "name": "200 — Trips List",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": \"trip-001\",\n    \"destination\": \"Bali, Indonesia\",\n    \"duration\": \"7 days\",\n    \"budget\": \"$1,200\",\n    \"eco_score\": 94,\n    \"status\": \"completed\",\n    \"date\": \"Dec 2025\",\n    \"tags\": [\"Beach\", \"Culture\"],\n    \"activities\": [\"Temple Visits\", \"Snorkeling\", \"Rice Terrace Walk\"],\n    \"image\": \"🏖️\",\n    \"user_id\": \"user-001\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Trip",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/trips/trip-001",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "trip-001"]
+            },
+            "description": "Get a single trip by its ID."
+          },
+          "response": [
+            {
+              "name": "200 — Trip Found",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": \"trip-001\",\n  \"destination\": \"Bali, Indonesia\",\n  \"duration\": \"7 days\",\n  \"budget\": \"$1,200\",\n  \"eco_score\": 94,\n  \"status\": \"completed\",\n  \"date\": \"Dec 2025\",\n  \"tags\": [\"Beach\", \"Culture\"],\n  \"activities\": [\"Temple Visits\", \"Snorkeling\", \"Rice Terrace Walk\"],\n  \"image\": \"🏖️\",\n  \"user_id\": \"user-001\"\n}"
+            },
+            {
+              "name": "404 — Trip Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"detail\": \"Trip with id 'trip-999' not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destination\": \"Kerala, India\",\n  \"duration\": \"5 days\",\n  \"budget\": \"$800\",\n  \"eco_score\": 96,\n  \"status\": \"planning\",\n  \"date\": \"Aug 2026\",\n  \"tags\": [\"Eco-Tourism\", \"Culture\", \"Nature\"],\n  \"activities\": [\"Backwater Cruise\", \"Spice Plantation Tour\", \"Ayurvedic Spa\"],\n  \"image\": \"🌿\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trips",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips"]
+            },
+            "description": "Create a new trip for the authenticated user."
+          },
+          "response": [
+            {
+              "name": "201 — Trip Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": \"trip-007\",\n  \"destination\": \"Kerala, India\",\n  \"duration\": \"5 days\",\n  \"budget\": \"$800\",\n  \"eco_score\": 96,\n  \"status\": \"planning\",\n  \"date\": \"Aug 2026\",\n  \"tags\": [\"Eco-Tourism\", \"Culture\", \"Nature\"],\n  \"activities\": [\"Backwater Cruise\", \"Spice Plantation Tour\", \"Ayurvedic Spa\"],\n  \"image\": \"🌿\",\n  \"user_id\": \"user-001\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Trip",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmed\",\n  \"budget\": \"$900\",\n  \"eco_score\": 98\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/trips/trip-005",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "trip-005"]
+            },
+            "description": "Update an existing trip. Only provided fields are modified."
+          },
+          "response": [
+            {
+              "name": "200 — Trip Updated",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"id\": \"trip-005\",\n  \"destination\": \"Tokyo, Japan\",\n  \"duration\": \"7 days\",\n  \"budget\": \"$900\",\n  \"eco_score\": 98,\n  \"status\": \"confirmed\",\n  \"date\": \"Jun 25 – Jul 1, 2026\",\n  \"tags\": [\"Culture\", \"Food\"],\n  \"activities\": [\"Temple Visits\", \"Street Food Tour\", \"Mt. Fuji Day Trip\"],\n  \"image\": \"🗼\",\n  \"user_id\": \"user-001\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Trip",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/trips/trip-006",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "trip-006"]
+            },
+            "description": "Delete a trip by ID. Returns 204 No Content on success."
+          },
+          "response": [
+            {
+              "name": "204 — Trip Deleted",
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "body": ""
+            },
+            {
+              "name": "404 — Trip Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"detail\": \"Trip with id 'trip-006' not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Search Trips",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/trips/search?q=japan",
+              "host": ["{{base_url}}"],
+              "path": ["api", "trips", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "japan"
+                }
+              ]
+            },
+            "description": "Search trips by destination name, tags, or activities. Case-insensitive."
+          },
+          "response": [
+            {
+              "name": "200 — Search Results",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "[\n  {\n    \"id\": \"trip-003\",\n    \"destination\": \"Kyoto, Japan\",\n    \"duration\": \"6 days\",\n    \"budget\": \"$1,800\",\n    \"eco_score\": 96,\n    \"status\": \"completed\",\n    \"date\": \"Oct 2025\",\n    \"tags\": [\"Heritage\", \"Culture\"],\n    \"activities\": [\"Bamboo Forest\", \"Tea Ceremony\", \"Shrine Visits\"],\n    \"image\": \"⛩️\",\n    \"user_id\": \"user-001\"\n  },\n  {\n    \"id\": \"trip-005\",\n    \"destination\": \"Tokyo, Japan\",\n    \"duration\": \"7 days\",\n    \"budget\": \"$2,400\",\n    \"eco_score\": 91,\n    \"status\": \"confirmed\",\n    \"date\": \"Jun 25 – Jul 1, 2026\",\n    \"tags\": [\"Culture\", \"Food\"],\n    \"activities\": [\"Temple Visits\", \"Street Food Tour\", \"Mt. Fuji Day Trip\"],\n    \"image\": \"🗼\",\n    \"user_id\": \"user-001\"\n  }\n]"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "stats"]
+            },
+            "description": "Get aggregated dashboard statistics for the authenticated user."
+          },
+          "response": [
+            {
+              "name": "200 — Dashboard Stats",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"total_trips\": 6,\n  \"total_destinations\": 6,\n  \"co2_saved\": 14.0,\n  \"eco_score\": 94,\n  \"stats_cards\": [\n    { \"label\": \"Total Trips\", \"value\": \"6\", \"change\": \"+12%\", \"trend\": \"up\" },\n    { \"label\": \"Destinations\", \"value\": \"6\", \"change\": \"+8%\", \"trend\": \"up\" },\n    { \"label\": \"CO₂ Saved\", \"value\": \"14.0t\", \"change\": \"+23%\", \"trend\": \"up\" },\n    { \"label\": \"Eco Score\", \"value\": \"94\", \"change\": \"+5pt\", \"trend\": \"up\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Dashboard Activity",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/dashboard/activity",
+              "host": ["{{base_url}}"],
+              "path": ["api", "dashboard", "activity"]
+            },
+            "description": "Get monthly activity data and sustainability breakdown for charts."
+          },
+          "response": [
+            {
+              "name": "200 — Activity Data",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"activity\": [\n    { \"month\": \"Jan\", \"trips\": 2, \"eco\": 78 },\n    { \"month\": \"Feb\", \"trips\": 1, \"eco\": 82 },\n    { \"month\": \"Mar\", \"trips\": 3, \"eco\": 85 },\n    { \"month\": \"Apr\", \"trips\": 2, \"eco\": 88 },\n    { \"month\": \"May\", \"trips\": 4, \"eco\": 90 },\n    { \"month\": \"Jun\", \"trips\": 3, \"eco\": 92 }\n  ],\n  \"sustainability\": [\n    { \"name\": \"Transport\", \"value\": 35, \"color\": \"#10b981\" },\n    { \"name\": \"Accommodation\", \"value\": 25, \"color\": \"#14b8a6\" },\n    { \"name\": \"Activities\", \"value\": 20, \"color\": \"#06b6d4\" },\n    { \"name\": \"Food\", \"value\": 20, \"color\": \"#0ea5e9\" }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

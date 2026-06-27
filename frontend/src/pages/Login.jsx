@@ -1,26 +1,57 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { Mail, Lock, Eye, EyeOff, Globe, ArrowRight, Github, Chrome } from 'lucide-react';
+import { Loader } from '../components/ui';
+import { useToast } from '../components/ui/Toast';
+import { useAuth } from '../context/AuthContext';
+import { Mail, Lock, Eye, EyeOff, Globe, ArrowRight, Github, Chrome, User } from 'lucide-react';
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
   });
 
+  const navigate = useNavigate();
+  const toast = useToast();
+  const { login, register } = useAuth();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Future: Connect to FastAPI backend
-    console.log('Form submitted:', formData);
+    setIsSubmitting(true);
+
+    try {
+      if (isLogin) {
+        // ── Login ──
+        await login(formData.email, formData.password);
+        toast.success('Welcome back! Redirecting to dashboard...');
+      } else {
+        // ── Register ──
+        if (!formData.name.trim()) {
+          toast.error('Please enter your full name');
+          setIsSubmitting(false);
+          return;
+        }
+        await register(formData.name, formData.email, formData.password);
+        toast.success('Account created successfully! Welcome aboard 🎉');
+      }
+      // Redirect to dashboard after short delay for toast visibility
+      setTimeout(() => navigate('/dashboard'), 800);
+    } catch (err) {
+      const message = err.message || 'Something went wrong. Please try again.';
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -141,15 +172,19 @@ function Login() {
                       <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
                         Full Name
                       </label>
-                      <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        placeholder="Your full name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="input-field"
-                      />
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                        <input
+                          id="name"
+                          name="name"
+                          type="text"
+                          placeholder="Your full name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          className="input-field pl-11"
+                          disabled={isSubmitting}
+                        />
+                      </div>
                     </div>
                   )}
 
@@ -168,6 +203,8 @@ function Login() {
                         value={formData.email}
                         onChange={handleChange}
                         className="input-field pl-11"
+                        required
+                        disabled={isSubmitting}
                       />
                     </div>
                   </div>
@@ -194,6 +231,9 @@ function Login() {
                         value={formData.password}
                         onChange={handleChange}
                         className="input-field pl-11 pr-11"
+                        required
+                        minLength={6}
+                        disabled={isSubmitting}
                       />
                       <button
                         type="button"
@@ -226,12 +266,29 @@ function Login() {
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="group w-full btn-primary flex items-center justify-center gap-2 py-3.5 text-base"
+                    disabled={isSubmitting}
+                    className="group w-full btn-primary flex items-center justify-center gap-2 py-3.5 text-base disabled:opacity-60 disabled:cursor-not-allowed"
                   >
-                    {isLogin ? 'Sign In' : 'Create Account'}
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                    {isSubmitting ? (
+                      <>
+                        <Loader variant="spinner" size="sm" color="text-white" />
+                        <span>{isLogin ? 'Signing in...' : 'Creating account...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        {isLogin ? 'Sign In' : 'Create Account'}
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                      </>
+                    )}
                   </button>
                 </form>
+
+                {/* Demo Credentials Hint */}
+                <div className="mt-4 p-3 rounded-lg bg-white/[0.03] border border-white/5">
+                  <p className="text-[11px] text-slate-500 text-center">
+                    <span className="text-slate-400 font-medium">Demo:</span> srishti@example.com / password123
+                  </p>
+                </div>
 
                 {/* Footer Text */}
                 <p className="text-center text-xs text-slate-500 mt-6">

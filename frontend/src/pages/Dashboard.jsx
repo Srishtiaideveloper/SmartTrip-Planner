@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { Loader } from '../components/ui';
+import { useToast } from '../components/ui/Toast';
+import { useAuth } from '../context/AuthContext';
+import { apiGet, apiPost, apiDelete } from '../services/api';
 import {
   MapPin,
   Globe,
@@ -32,6 +37,7 @@ import {
   TreePine,
   Waves,
   Mountain,
+  Trash2,
 } from 'lucide-react';
 import {
   LineChart,
@@ -50,141 +56,23 @@ import {
   Cell,
 } from 'recharts';
 
-/* ─── Mock Data ─── */
-const statsData = [
-  {
-    label: 'Total Trips',
-    value: '24',
-    change: '+12%',
-    trend: 'up',
-    icon: MapPin,
-    color: 'emerald',
-    bgGradient: 'from-emerald-500/10 to-teal-500/10',
-    iconBg: 'from-emerald-500 to-teal-500',
-  },
-  {
-    label: 'Destinations',
-    value: '18',
-    change: '+8%',
-    trend: 'up',
-    icon: Globe,
-    color: 'blue',
-    bgGradient: 'from-blue-500/10 to-cyan-500/10',
-    iconBg: 'from-blue-500 to-cyan-500',
-  },
-  {
-    label: 'CO₂ Saved',
-    value: '2.4t',
-    change: '+23%',
-    trend: 'up',
-    icon: Leaf,
-    color: 'green',
-    bgGradient: 'from-green-500/10 to-emerald-500/10',
-    iconBg: 'from-green-500 to-emerald-500',
-  },
-  {
-    label: 'Eco Score',
-    value: '92',
-    change: '+5pt',
-    trend: 'up',
-    icon: Award,
-    color: 'amber',
-    bgGradient: 'from-amber-500/10 to-yellow-500/10',
-    iconBg: 'from-amber-500 to-yellow-500',
-  },
-];
+/* ─── Icon Map (since backend can't send React components) ─── */
+const iconMap = {
+  '🏖️': Waves,
+  '🏔️': Mountain,
+  '⛩️': TreePine,
+  '🌿': Leaf,
+  '🗼': Plane,
+  '🌍': Globe,
+};
 
-const activityData = [
-  { month: 'Jan', trips: 2, eco: 78 },
-  { month: 'Feb', trips: 1, eco: 82 },
-  { month: 'Mar', trips: 3, eco: 85 },
-  { month: 'Apr', trips: 2, eco: 88 },
-  { month: 'May', trips: 4, eco: 90 },
-  { month: 'Jun', trips: 3, eco: 92 },
-  { month: 'Jul', trips: 5, eco: 89 },
-  { month: 'Aug', trips: 2, eco: 91 },
-  { month: 'Sep', trips: 4, eco: 93 },
-  { month: 'Oct', trips: 3, eco: 95 },
-  { month: 'Nov', trips: 1, eco: 94 },
-  { month: 'Dec', trips: 2, eco: 92 },
-];
-
-const sustainabilityBreakdown = [
-  { name: 'Transport', value: 35, color: '#10b981' },
-  { name: 'Accommodation', value: 25, color: '#14b8a6' },
-  { name: 'Activities', value: 20, color: '#06b6d4' },
-  { name: 'Food', value: 20, color: '#0ea5e9' },
-];
-
-const recentItineraries = [
-  {
-    id: 1,
-    destination: 'Bali, Indonesia',
-    duration: '7 days',
-    budget: '$1,200',
-    ecoScore: 94,
-    status: 'completed',
-    date: 'Dec 2025',
-    icon: Waves,
-    tags: ['Beach', 'Culture'],
-  },
-  {
-    id: 2,
-    destination: 'Swiss Alps, Switzerland',
-    duration: '5 days',
-    budget: '$2,100',
-    ecoScore: 88,
-    status: 'completed',
-    date: 'Nov 2025',
-    icon: Mountain,
-    tags: ['Adventure', 'Nature'],
-  },
-  {
-    id: 3,
-    destination: 'Kyoto, Japan',
-    duration: '6 days',
-    budget: '$1,800',
-    ecoScore: 96,
-    status: 'completed',
-    date: 'Oct 2025',
-    icon: TreePine,
-    tags: ['Heritage', 'Culture'],
-  },
-  {
-    id: 4,
-    destination: 'Costa Rica',
-    duration: '8 days',
-    budget: '$1,500',
-    ecoScore: 97,
-    status: 'completed',
-    date: 'Sep 2025',
-    icon: Leaf,
-    tags: ['Eco-Tourism', 'Wildlife'],
-  },
-];
-
-const upcomingTrips = [
-  {
-    destination: 'Tokyo, Japan',
-    dates: 'Jun 25 – Jul 1, 2026',
-    days: 7,
-    budget: '$2,400',
-    ecoScore: 91,
-    status: 'confirmed',
-    activities: ['Temple Visits', 'Street Food Tour', 'Mt. Fuji Day Trip'],
-    image: '🗼',
-  },
-  {
-    destination: 'Patagonia, Chile',
-    dates: 'Jul 15 – Jul 24, 2026',
-    days: 10,
-    budget: '$3,200',
-    ecoScore: 95,
-    status: 'planning',
-    activities: ['Glacier Trekking', 'Wildlife Safari', 'Camping'],
-    image: '🏔️',
-  },
-];
+/* ─── Stat Icon Map ─── */
+const statIconMap = {
+  'Total Trips': { icon: MapPin, color: 'emerald', bgGradient: 'from-emerald-500/10 to-teal-500/10', iconBg: 'from-emerald-500 to-teal-500' },
+  'Destinations': { icon: Globe, color: 'blue', bgGradient: 'from-blue-500/10 to-cyan-500/10', iconBg: 'from-blue-500 to-cyan-500' },
+  'CO₂ Saved': { icon: Leaf, color: 'green', bgGradient: 'from-green-500/10 to-emerald-500/10', iconBg: 'from-green-500 to-emerald-500' },
+  'Eco Score': { icon: Award, color: 'amber', bgGradient: 'from-amber-500/10 to-yellow-500/10', iconBg: 'from-amber-500 to-yellow-500' },
+};
 
 const quickActions = [
   { label: 'New Trip', icon: Plus, gradient: 'from-emerald-500 to-teal-500' },
@@ -259,6 +147,77 @@ function EcoScoreRing({ score, size = 120 }) {
 function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
+  const toast = useToast();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
+
+  // ── API Data State ──
+  const [statsData, setStatsData] = useState(null);
+  const [activityData, setActivityData] = useState(null);
+  const [sustainabilityData, setSustainabilityData] = useState(null);
+  const [trips, setTrips] = useState([]);
+  const [loadingData, setLoadingData] = useState(true);
+  const [error, setError] = useState(null);
+
+  // ── Redirect if not authenticated ──
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      toast.warning('Please sign in to access your dashboard');
+      navigate('/login');
+    }
+  }, [authLoading, isAuthenticated, navigate, toast]);
+
+  // ── Fetch all dashboard data from backend ──
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    async function fetchDashboardData() {
+      setLoadingData(true);
+      setError(null);
+      try {
+        const [statsRes, activityRes, tripsRes] = await Promise.all([
+          apiGet('/dashboard/stats'),
+          apiGet('/dashboard/activity'),
+          apiGet('/trips'),
+        ]);
+
+        setStatsData(statsRes);
+        setActivityData(activityRes.activity);
+        setSustainabilityData(activityRes.sustainability);
+        setTrips(tripsRes);
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+        setError(err.message);
+        toast.error('Failed to load dashboard data. Please try again.');
+      } finally {
+        setLoadingData(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, [isAuthenticated]);
+
+  // ── Delete a trip ──
+  const handleDeleteTrip = async (tripId) => {
+    try {
+      await apiDelete(`/trips/${tripId}`);
+      setTrips((prev) => prev.filter((t) => t.id !== tripId));
+      toast.success('Trip deleted successfully');
+    } catch (err) {
+      toast.error('Failed to delete trip');
+    }
+  };
+
+  // ── Derived data ──
+  const completedTrips = trips.filter((t) => t.status === 'completed');
+  const upcomingTrips = trips.filter((t) => t.status === 'confirmed' || t.status === 'planning');
+  const filteredTrips = searchQuery
+    ? trips.filter(
+        (t) =>
+          t.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          t.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+    : completedTrips;
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -266,6 +225,53 @@ function Dashboard() {
     { id: 'sustainability', label: 'Eco Impact', icon: Leaf },
     { id: 'analytics', label: 'Analytics', icon: Activity },
   ];
+
+  // ── Loading State ──
+  if (authLoading || loadingData) {
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <Navbar />
+        <main className="pt-20 sm:pt-24 pb-12">
+          <div className="container-custom flex flex-col items-center justify-center min-h-[60vh] gap-4">
+            <Loader variant="spinner" size="lg" />
+            <p className="text-slate-400 text-sm animate-pulse">Loading your travel dashboard...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ── Error State ──
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-950">
+        <Navbar />
+        <main className="pt-20 sm:pt-24 pb-12">
+          <div className="container-custom flex flex-col items-center justify-center min-h-[60vh] gap-4">
+            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
+              <Globe className="w-8 h-8 text-red-400" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Failed to load dashboard</h2>
+            <p className="text-sm text-slate-400 text-center max-w-md">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn-primary mt-2 text-sm"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // ── Stats Cards Data (merge backend data with icon config) ──
+  const statCards = (statsData?.stats_cards || []).map((card) => ({
+    ...card,
+    ...(statIconMap[card.label] || statIconMap['Total Trips']),
+  }));
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -277,7 +283,7 @@ function Dashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                Welcome back, <span className="gradient-text">Srishti</span> 👋
+                Welcome back, <span className="gradient-text">{user?.name || 'Traveler'}</span> 👋
               </h1>
               <p className="text-sm sm:text-base text-slate-400">
                 Here's your travel overview for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
@@ -328,32 +334,35 @@ function Dashboard() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
-            {statsData.map((stat, i) => (
-              <div
-                key={i}
-                className={`glass-card p-5 sm:p-6 hover:bg-white/[0.08] transition-all duration-500 group cursor-default bg-gradient-to-br ${stat.bgGradient}`}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${stat.iconBg} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                    <stat.icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white" />
+            {statCards.map((stat, i) => {
+              const StatIcon = stat.icon;
+              return (
+                <div
+                  key={i}
+                  className={`glass-card p-5 sm:p-6 hover:bg-white/[0.08] transition-all duration-500 group cursor-default bg-gradient-to-br ${stat.bgGradient}`}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${stat.iconBg} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                      <StatIcon className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white" />
+                    </div>
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
+                      stat.trend === 'up'
+                        ? 'bg-emerald-500/10 text-emerald-400'
+                        : 'bg-rose-500/10 text-rose-400'
+                    }`}>
+                      {stat.trend === 'up' ? (
+                        <TrendingUp className="w-3 h-3" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3" />
+                      )}
+                      {stat.change}
+                    </div>
                   </div>
-                  <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
-                    stat.trend === 'up'
-                      ? 'bg-emerald-500/10 text-emerald-400'
-                      : 'bg-rose-500/10 text-rose-400'
-                  }`}>
-                    {stat.trend === 'up' ? (
-                      <TrendingUp className="w-3 h-3" />
-                    ) : (
-                      <TrendingDown className="w-3 h-3" />
-                    )}
-                    {stat.change}
-                  </div>
+                  <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-slate-400">{stat.label}</div>
                 </div>
-                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                <div className="text-xs sm:text-sm text-slate-400">{stat.label}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Charts Row */}
@@ -377,44 +386,50 @@ function Dashboard() {
                 </div>
               </div>
               <div className="h-64 sm:h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={activityData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="tripGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                      </linearGradient>
-                      <linearGradient id="ecoGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Area
-                      type="monotone"
-                      dataKey="trips"
-                      name="Trips"
-                      stroke="#10b981"
-                      strokeWidth={2.5}
-                      fill="url(#tripGradient)"
-                      dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }}
-                      activeDot={{ r: 5, fill: '#10b981', stroke: '#10b981', strokeWidth: 2, strokeOpacity: 0.3 }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="eco"
-                      name="Eco Score"
-                      stroke="#06b6d4"
-                      strokeWidth={2}
-                      fill="url(#ecoGrad)"
-                      dot={false}
-                      strokeDasharray="4 4"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {activityData ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={activityData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="tripGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="ecoGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2} />
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                      <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area
+                        type="monotone"
+                        dataKey="trips"
+                        name="Trips"
+                        stroke="#10b981"
+                        strokeWidth={2.5}
+                        fill="url(#tripGradient)"
+                        dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }}
+                        activeDot={{ r: 5, fill: '#10b981', stroke: '#10b981', strokeWidth: 2, strokeOpacity: 0.3 }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="eco"
+                        name="Eco Score"
+                        stroke="#06b6d4"
+                        strokeWidth={2}
+                        fill="url(#ecoGrad)"
+                        dot={false}
+                        strokeDasharray="4 4"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <Loader variant="dots" size="md" />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -433,12 +448,12 @@ function Dashboard() {
 
               {/* Score Ring */}
               <div className="flex justify-center mb-6">
-                <EcoScoreRing score={92} size={140} />
+                <EcoScoreRing score={statsData?.eco_score || 0} size={140} />
               </div>
 
               {/* Breakdown */}
               <div className="space-y-3">
-                {sustainabilityBreakdown.map((item, i) => (
+                {(sustainabilityData || []).map((item, i) => (
                   <div key={i}>
                     <div className="flex items-center justify-between text-xs mb-1.5">
                       <span className="text-slate-300">{item.name}</span>
@@ -475,56 +490,78 @@ function Dashboard() {
               </div>
 
               <div className="space-y-3">
-                {recentItineraries.map((trip) => (
-                  <div
-                    key={trip.id}
-                    className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 transition-all duration-300 group cursor-pointer"
-                  >
-                    {/* Icon */}
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-all duration-300">
-                      <trip.icon className="w-5 h-5 text-emerald-400" />
-                    </div>
+                {filteredTrips.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Map className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-slate-400">
+                      {searchQuery ? 'No trips match your search' : 'No completed trips yet'}
+                    </p>
+                  </div>
+                ) : (
+                  filteredTrips.map((trip) => {
+                    const TripIcon = iconMap[trip.image] || Globe;
+                    return (
+                      <div
+                        key={trip.id}
+                        className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 transition-all duration-300 group cursor-pointer"
+                      >
+                        {/* Icon */}
+                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-all duration-300">
+                          <TripIcon className="w-5 h-5 text-emerald-400" />
+                        </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-semibold text-white truncate">{trip.destination}</h4>
-                        <div className="flex gap-1.5 hidden sm:flex">
-                          {trip.tags.map((tag, i) => (
-                            <span key={i} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400">
-                              {tag}
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-semibold text-white truncate">{trip.destination}</h4>
+                            <div className="flex gap-1.5 hidden sm:flex">
+                              {trip.tags.map((tag, i) => (
+                                <span key={i} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 mt-1">
+                            <span className="flex items-center gap-1 text-xs text-slate-400">
+                              <Clock className="w-3 h-3" />
+                              {trip.duration}
                             </span>
-                          ))}
+                            <span className="text-xs text-slate-500">•</span>
+                            <span className="text-xs text-slate-400">{trip.budget}</span>
+                            <span className="text-xs text-slate-500">•</span>
+                            <span className="text-xs text-slate-500">{trip.date}</span>
+                          </div>
+                        </div>
+
+                        {/* Eco Score + Delete */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                            trip.eco_score >= 95
+                              ? 'bg-emerald-500/10 text-emerald-400'
+                              : trip.eco_score >= 90
+                              ? 'bg-teal-500/10 text-teal-400'
+                              : 'bg-cyan-500/10 text-cyan-400'
+                          }`}>
+                            <Leaf className="w-3 h-3" />
+                            {trip.eco_score}
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTrip(trip.id);
+                            }}
+                            className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                            title="Delete trip"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors duration-300" />
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="flex items-center gap-1 text-xs text-slate-400">
-                          <Clock className="w-3 h-3" />
-                          {trip.duration}
-                        </span>
-                        <span className="text-xs text-slate-500">•</span>
-                        <span className="text-xs text-slate-400">{trip.budget}</span>
-                        <span className="text-xs text-slate-500">•</span>
-                        <span className="text-xs text-slate-500">{trip.date}</span>
-                      </div>
-                    </div>
-
-                    {/* Eco Score */}
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                        trip.ecoScore >= 95
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : trip.ecoScore >= 90
-                          ? 'bg-teal-500/10 text-teal-400'
-                          : 'bg-cyan-500/10 text-cyan-400'
-                      }`}>
-                        <Leaf className="w-3 h-3" />
-                        {trip.ecoScore}
-                      </div>
-                      <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors duration-300" />
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })
+                )}
               </div>
             </div>
 
@@ -539,60 +576,67 @@ function Dashboard() {
               </div>
 
               <div className="space-y-4">
-                {upcomingTrips.map((trip, i) => (
-                  <div
-                    key={i}
-                    className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/20 hover:bg-white/[0.05] transition-all duration-300 group cursor-pointer"
-                  >
-                    {/* Header */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{trip.image}</span>
-                        <div>
-                          <h4 className="text-sm font-semibold text-white">{trip.destination}</h4>
-                          <p className="text-xs text-slate-400 mt-0.5">{trip.dates}</p>
-                        </div>
-                      </div>
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ${
-                        trip.status === 'confirmed'
-                          ? 'bg-emerald-500/10 text-emerald-400'
-                          : 'bg-amber-500/10 text-amber-400'
-                      }`}>
-                        {trip.status}
-                      </span>
-                    </div>
-
-                    {/* Details */}
-                    <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {trip.days} days
-                      </span>
-                      <span>{trip.budget}</span>
-                      <span className="flex items-center gap-1 text-emerald-400">
-                        <Leaf className="w-3 h-3" />
-                        {trip.ecoScore}
-                      </span>
-                    </div>
-
-                    {/* Activities */}
-                    <div className="flex flex-wrap gap-1.5">
-                      {trip.activities.map((activity, j) => (
-                        <span
-                          key={j}
-                          className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400 border border-white/5"
-                        >
-                          {activity}
-                        </span>
-                      ))}
-                    </div>
+                {upcomingTrips.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Compass className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-slate-400">No upcoming trips planned</p>
                   </div>
-                ))}
+                ) : (
+                  upcomingTrips.map((trip, i) => (
+                    <div
+                      key={trip.id}
+                      className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/20 hover:bg-white/[0.05] transition-all duration-300 group cursor-pointer"
+                    >
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">{trip.image}</span>
+                          <div>
+                            <h4 className="text-sm font-semibold text-white">{trip.destination}</h4>
+                            <p className="text-xs text-slate-400 mt-0.5">{trip.date}</p>
+                          </div>
+                        </div>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ${
+                          trip.status === 'confirmed'
+                            ? 'bg-emerald-500/10 text-emerald-400'
+                            : 'bg-amber-500/10 text-amber-400'
+                        }`}>
+                          {trip.status}
+                        </span>
+                      </div>
+
+                      {/* Details */}
+                      <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {trip.duration}
+                        </span>
+                        <span>{trip.budget}</span>
+                        <span className="flex items-center gap-1 text-emerald-400">
+                          <Leaf className="w-3 h-3" />
+                          {trip.eco_score}
+                        </span>
+                      </div>
+
+                      {/* Activities */}
+                      <div className="flex flex-wrap gap-1.5">
+                        {trip.activities.map((activity, j) => (
+                          <span
+                            key={j}
+                            className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400 border border-white/5"
+                          >
+                            {activity}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
 
-          {/* Quick Actions + AI Insights */}
+          {/* Quick Actions */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {quickActions.map((action, i) => (
               <button

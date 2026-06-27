@@ -17,6 +17,12 @@ build/
 __pycache__/
 *.pyc
 
+# Python virtual environment
+backend/venv/
+
+# Backend environment variables
+backend/.env
+
 # Logs
 logs/
 *.log
