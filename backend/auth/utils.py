@@ -12,7 +12,6 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from data.store import users_db
 
 # ── Password Hashing ─────────────────────────────────────────────────────────
 
@@ -80,6 +79,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise credentials_exception
 
     # Find user in the in-memory store
+    from data.store import users_db
     user = next((u for u in users_db if u["email"] == email), None)
     if user is None:
         raise credentials_exception

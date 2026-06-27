@@ -42,7 +42,13 @@ async function handleResponse(response) {
     return null;
   }
 
-  const data = await response.json();
+  let data;
+  const text = await response.text();
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (err) {
+    data = { detail: text || `Request failed with status ${response.status}` };
+  }
 
   if (!response.ok) {
     const message = data.detail || data.message || `Request failed with status ${response.status}`;
