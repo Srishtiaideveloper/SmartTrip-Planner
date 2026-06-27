@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { Loader } from '../components/ui';
 import { useToast } from '../components/ui/Toast';
+import NewTripModal from '../components/NewTripModal';
 import { useAuth } from '../context/AuthContext';
 import { apiGet, apiPost, apiDelete } from '../services/api';
 import {
@@ -150,6 +151,8 @@ function Dashboard() {
   const navigate = useNavigate();
   const toast = useToast();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  
+  const [isNewTripModalOpen, setIsNewTripModalOpen] = useState(false);
 
   // ── API Data State ──
   const [statsData, setStatsData] = useState(null);
@@ -206,6 +209,10 @@ function Dashboard() {
     } catch (err) {
       toast.error('Failed to delete trip');
     }
+  };
+
+  const handleTripCreated = (newTrip) => {
+    setTrips((prev) => [newTrip, ...prev]);
   };
 
   // ── Derived data ──
@@ -307,7 +314,10 @@ function Dashboard() {
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-400 rounded-full" />
               </button>
               {/* New Trip */}
-              <button className="btn-primary flex items-center gap-2 py-2.5 text-sm">
+              <button 
+                onClick={() => setIsNewTripModalOpen(true)}
+                className="btn-primary flex items-center gap-2 py-2.5 text-sm"
+              >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Trip</span>
               </button>
@@ -655,6 +665,7 @@ function Dashboard() {
             {quickActions.map((action, i) => (
               <button
                 key={i}
+                onClick={action.label === 'New Trip' ? () => setIsNewTripModalOpen(true) : undefined}
                 className={`glass-card p-5 hover:bg-white/[0.08] transition-all duration-500 group text-left bg-gradient-to-br ${action.gradient}`}
               >
                 <div className={`w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
@@ -700,6 +711,12 @@ function Dashboard() {
       </main>
 
       <Footer />
+      
+      <NewTripModal 
+        isOpen={isNewTripModalOpen} 
+        onClose={() => setIsNewTripModalOpen(false)} 
+        onTripCreated={handleTripCreated} 
+      />
     </div>
   );
 }
