@@ -358,303 +358,319 @@ function Dashboard() {
                       {stat.change}
                     </div>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                  <div className="text-xs sm:text-sm text-slate-400">{stat.label}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-sm mb-1">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-white/80">{stat.label}</div>
                 </div>
               );
             })}
           </div>
 
-          {/* Charts Row */}
-          <div className="grid lg:grid-cols-3 gap-5 mb-8">
-            {/* Activity Chart */}
-            <div className="lg:col-span-2 glass-card p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-white">Trip Activity</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Monthly trips & eco score trends</p>
-                </div>
-                <div className="flex items-center gap-4 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                    <span className="text-slate-400">Trips</span>
+          {/* Conditional Content based on Active Tab */}
+          
+          {/* Overview & Analytics Tab (Charts) */}
+          {(activeTab === 'overview' || activeTab === 'analytics') && (
+            <div className="grid lg:grid-cols-3 gap-5 mb-8">
+              {/* Activity Chart */}
+              <div className="lg:col-span-2 glass-card p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Trip Activity</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Monthly trips & eco score trends</p>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                    <span className="text-slate-400">Eco Score</span>
-                  </div>
-                </div>
-              </div>
-              <div className="h-64 sm:h-72">
-                {activityData ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={activityData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="tripGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="ecoGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2} />
-                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area
-                        type="monotone"
-                        dataKey="trips"
-                        name="Trips"
-                        stroke="#10b981"
-                        strokeWidth={2.5}
-                        fill="url(#tripGradient)"
-                        dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }}
-                        activeDot={{ r: 5, fill: '#10b981', stroke: '#10b981', strokeWidth: 2, strokeOpacity: 0.3 }}
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="eco"
-                        name="Eco Score"
-                        stroke="#06b6d4"
-                        strokeWidth={2}
-                        fill="url(#ecoGrad)"
-                        dot={false}
-                        strokeDasharray="4 4"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <Loader variant="dots" size="md" />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Sustainability Score */}
-            <div className="glass-card p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-white">Eco Impact</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Sustainability breakdown</p>
-                </div>
-                <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium">
-                  <Leaf className="w-3 h-3" />
-                  Excellent
-                </div>
-              </div>
-
-              {/* Score Ring */}
-              <div className="flex justify-center mb-6">
-                <EcoScoreRing score={statsData?.eco_score || 0} size={140} />
-              </div>
-
-              {/* Breakdown */}
-              <div className="space-y-3">
-                {(sustainabilityData || []).map((item, i) => (
-                  <div key={i}>
-                    <div className="flex items-center justify-between text-xs mb-1.5">
-                      <span className="text-slate-300">{item.name}</span>
-                      <span className="text-slate-400 font-medium">{item.value}%</span>
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                      <span className="text-slate-400">Trips</span>
                     </div>
-                    <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-1000 ease-out"
-                        style={{
-                          width: `${item.value}%`,
-                          backgroundColor: item.color,
-                        }}
-                      />
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+                      <span className="text-slate-400">Eco Score</span>
                     </div>
                   </div>
-                ))}
+                </div>
+                <div className="h-64 sm:h-72">
+                  {activityData ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={activityData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="tripGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="ecoGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                        <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Area
+                          type="monotone"
+                          dataKey="trips"
+                          name="Trips"
+                          stroke="#10b981"
+                          strokeWidth={2.5}
+                          fill="url(#tripGradient)"
+                          dot={{ r: 3, fill: '#10b981', strokeWidth: 0 }}
+                          activeDot={{ r: 5, fill: '#10b981', stroke: '#10b981', strokeWidth: 2, strokeOpacity: 0.3 }}
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="eco"
+                          name="Eco Score"
+                          stroke="#06b6d4"
+                          strokeWidth={2}
+                          fill="url(#ecoGrad)"
+                          dot={false}
+                          strokeDasharray="4 4"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader variant="dots" size="md" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Sustainability Score */}
+              <div className="glass-card p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Eco Impact</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Sustainability breakdown</p>
+                  </div>
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium">
+                    <Leaf className="w-3 h-3" />
+                    Excellent
+                  </div>
+                </div>
+
+                {/* Score Ring */}
+                <div className="flex justify-center mb-6">
+                  <EcoScoreRing score={statsData?.eco_score || 0} size={140} />
+                </div>
+
+                {/* Breakdown */}
+                <div className="space-y-3">
+                  {(sustainabilityData || []).map((item, i) => (
+                    <div key={i}>
+                      <div className="flex items-center justify-between text-xs mb-1.5">
+                        <span className="text-slate-300">{item.name}</span>
+                        <span className="text-slate-400 font-medium">{item.value}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-1000 ease-out"
+                          style={{
+                            width: `${item.value}%`,
+                            backgroundColor: item.color,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Recent Itineraries + Upcoming Trips */}
-          <div className="grid lg:grid-cols-3 gap-5 mb-8">
-            {/* Recent Itineraries */}
-            <div className="lg:col-span-2 glass-card p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-white">Recent Itineraries</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Your latest travel plans</p>
-                </div>
-                <button className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors duration-300">
-                  View All
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {filteredTrips.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Map className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                    <p className="text-sm text-slate-400">
-                      {searchQuery ? 'No trips match your search' : 'No completed trips yet'}
-                    </p>
+          {/* Overview, My Trips & Eco Impact Tabs */}
+          {(activeTab === 'overview' || activeTab === 'trips' || activeTab === 'sustainability') && (
+            <div className="grid lg:grid-cols-3 gap-5 mb-8">
+              {/* Recent Itineraries */}
+              <div className="lg:col-span-2 glass-card p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">
+                      {activeTab === 'trips' ? 'All Itineraries' : 'Recent Itineraries'}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Your travel plans</p>
                   </div>
-                ) : (
-                  filteredTrips.map((trip) => {
-                    const TripIcon = iconMap[trip.image] || Globe;
-                    return (
-                      <div
-                        key={trip.id}
-                        className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 transition-all duration-300 group cursor-pointer"
-                      >
-                        {/* Icon */}
-                        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-all duration-300">
-                          <TripIcon className="w-5 h-5 text-emerald-400" />
-                        </div>
+                  {activeTab === 'overview' && (
+                    <button 
+                      onClick={() => setActiveTab('trips')}
+                      className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors duration-300"
+                    >
+                      View All
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
 
-                        {/* Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-semibold text-white truncate">{trip.destination}</h4>
-                            <div className="flex gap-1.5 hidden sm:flex">
-                              {trip.tags.map((tag, i) => (
-                                <span key={i} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400">
-                                  {tag}
-                                </span>
-                              ))}
+                <div className="space-y-3">
+                  {filteredTrips.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Map className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                      <p className="text-sm text-slate-400">
+                        {searchQuery ? 'No trips match your search' : 'No trips yet'}
+                      </p>
+                    </div>
+                  ) : (
+                    filteredTrips.map((trip) => {
+                      const TripIcon = iconMap[trip.image] || Globe;
+                      return (
+                        <div
+                          key={trip.id}
+                          className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 transition-all duration-300 group cursor-pointer"
+                        >
+                          {/* Icon */}
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-all duration-300">
+                            <TripIcon className="w-5 h-5 text-emerald-400" />
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-semibold text-white truncate">{trip.destination}</h4>
+                              <div className="flex gap-1.5 hidden sm:flex">
+                                {trip.tags.map((tag, i) => (
+                                  <span key={i} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400">
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3 mt-1">
+                              <span className="flex items-center gap-1 text-xs text-slate-400">
+                                <Clock className="w-3 h-3" />
+                                {trip.duration}
+                              </span>
+                              <span className="text-xs text-slate-500">•</span>
+                              <span className="text-xs text-slate-400">{trip.budget}</span>
+                              <span className="text-xs text-slate-500">•</span>
+                              <span className="text-xs text-slate-500">{trip.date}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 mt-1">
-                            <span className="flex items-center gap-1 text-xs text-slate-400">
-                              <Clock className="w-3 h-3" />
-                              {trip.duration}
-                            </span>
-                            <span className="text-xs text-slate-500">•</span>
-                            <span className="text-xs text-slate-400">{trip.budget}</span>
-                            <span className="text-xs text-slate-500">•</span>
-                            <span className="text-xs text-slate-500">{trip.date}</span>
+
+                          {/* Eco Score + Delete */}
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
+                              trip.eco_score >= 95
+                                ? 'bg-emerald-500/10 text-emerald-400'
+                                : trip.eco_score >= 90
+                                ? 'bg-teal-500/10 text-teal-400'
+                                : 'bg-cyan-500/10 text-cyan-400'
+                            }`}>
+                              <Leaf className="w-3 h-3" />
+                              {trip.eco_score}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTrip(trip.id);
+                              }}
+                              className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                              title="Delete trip"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                            <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors duration-300" />
                           </div>
                         </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
 
-                        {/* Eco Score + Delete */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                            trip.eco_score >= 95
+              {/* Upcoming Trips */}
+              <div className="glass-card p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-bold text-white">Upcoming</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">Next adventures</p>
+                  </div>
+                  <Calendar className="w-5 h-5 text-slate-400" />
+                </div>
+
+                <div className="space-y-4">
+                  {upcomingTrips.length === 0 ? (
+                    <div className="text-center py-8">
+                      <Compass className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                      <p className="text-sm text-slate-400">No upcoming trips planned</p>
+                    </div>
+                  ) : (
+                    upcomingTrips.map((trip, i) => (
+                      <div
+                        key={trip.id}
+                        className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/20 hover:bg-white/[0.05] transition-all duration-300 group cursor-pointer"
+                      >
+                        {/* Header */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{trip.image}</span>
+                            <div>
+                              <h4 className="text-sm font-semibold text-white">{trip.destination}</h4>
+                              <p className="text-xs text-slate-400 mt-0.5">{trip.date}</p>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ${
+                            trip.status === 'confirmed'
                               ? 'bg-emerald-500/10 text-emerald-400'
-                              : trip.eco_score >= 90
-                              ? 'bg-teal-500/10 text-teal-400'
-                              : 'bg-cyan-500/10 text-cyan-400'
+                              : 'bg-amber-500/10 text-amber-400'
                           }`}>
+                            {trip.status}
+                          </span>
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {trip.duration}
+                          </span>
+                          <span>{trip.budget}</span>
+                          <span className="flex items-center gap-1 text-emerald-400">
                             <Leaf className="w-3 h-3" />
                             {trip.eco_score}
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTrip(trip.id);
-                            }}
-                            className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 opacity-0 group-hover:opacity-100"
-                            title="Delete trip"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                          <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors duration-300" />
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* Upcoming Trips */}
-            <div className="glass-card p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-white">Upcoming</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Next adventures</p>
-                </div>
-                <Calendar className="w-5 h-5 text-slate-400" />
-              </div>
-
-              <div className="space-y-4">
-                {upcomingTrips.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Compass className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                    <p className="text-sm text-slate-400">No upcoming trips planned</p>
-                  </div>
-                ) : (
-                  upcomingTrips.map((trip, i) => (
-                    <div
-                      key={trip.id}
-                      className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/20 hover:bg-white/[0.05] transition-all duration-300 group cursor-pointer"
-                    >
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{trip.image}</span>
-                          <div>
-                            <h4 className="text-sm font-semibold text-white">{trip.destination}</h4>
-                            <p className="text-xs text-slate-400 mt-0.5">{trip.date}</p>
-                          </div>
-                        </div>
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ${
-                          trip.status === 'confirmed'
-                            ? 'bg-emerald-500/10 text-emerald-400'
-                            : 'bg-amber-500/10 text-amber-400'
-                        }`}>
-                          {trip.status}
-                        </span>
-                      </div>
-
-                      {/* Details */}
-                      <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {trip.duration}
-                        </span>
-                        <span>{trip.budget}</span>
-                        <span className="flex items-center gap-1 text-emerald-400">
-                          <Leaf className="w-3 h-3" />
-                          {trip.eco_score}
-                        </span>
-                      </div>
-
-                      {/* Activities */}
-                      <div className="flex flex-wrap gap-1.5">
-                        {trip.activities.map((activity, j) => (
-                          <span
-                            key={j}
-                            className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400 border border-white/5"
-                          >
-                            {activity}
                           </span>
-                        ))}
+                        </div>
+
+                        {/* Activities */}
+                        <div className="flex flex-wrap gap-1.5">
+                          {trip.activities.map((activity, j) => (
+                            <span
+                              key={j}
+                              className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400 border border-white/5"
+                            >
+                              {activity}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Quick Actions */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* Quick Actions (only show on overview) */}
+          {activeTab === 'overview' && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {quickActions.map((action, i) => (
               <button
                 key={i}
-                className="glass-card p-5 hover:bg-white/[0.08] transition-all duration-500 group text-left"
+                className={`glass-card p-5 hover:bg-white/[0.08] transition-all duration-500 group text-left bg-gradient-to-br ${action.gradient}`}
               >
-                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+                <div className={`w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
                   <action.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white">{action.label}</span>
-                  <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all duration-300" />
+                  <span className="text-sm font-semibold text-white drop-shadow-sm">{action.label}</span>
+                  <ArrowRight className="w-4 h-4 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
                 </div>
               </button>
             ))}
           </div>
+          )}
 
-          {/* AI Insights Banner */}
+          {/* AI Insights Banner (only show on overview and analytics) */}
+          {(activeTab === 'overview' || activeTab === 'analytics') && (
           <div className="glass-card p-6 sm:p-8 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-60 h-60 bg-emerald-500/10 rounded-full blur-[80px]" />
             <div className="absolute bottom-0 left-10 w-40 h-40 bg-cyan-500/8 rounded-full blur-[60px]" />
@@ -679,6 +695,7 @@ function Dashboard() {
               </button>
             </div>
           </div>
+          )}
         </div>
       </main>
 
