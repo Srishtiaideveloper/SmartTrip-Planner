@@ -137,8 +137,8 @@ function EcoScoreRing({ score, size = 120 }) {
         </defs>
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-2xl font-bold text-white">{score}</span>
-        <span className="text-[10px] text-slate-400 font-medium">/ 100</span>
+        <span className="text-2xl font-bold text-slate-900 dark:text-white">{score}</span>
+        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">/ 100</span>
       </div>
     </div>
   );
@@ -384,7 +384,7 @@ function Dashboard() {
               <div className="lg:col-span-2 glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-white">Trip Activity</h3>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Trip Activity</h3>
                     <p className="text-xs text-slate-400 mt-0.5">Monthly trips & eco score trends</p>
                   </div>
                   <div className="flex items-center gap-4 text-xs">
@@ -450,7 +450,7 @@ function Dashboard() {
               <div className="glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-white">Eco Impact</h3>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Eco Impact</h3>
                     <p className="text-xs text-slate-400 mt-0.5">Sustainability breakdown</p>
                   </div>
                   <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium">
@@ -469,8 +469,8 @@ function Dashboard() {
                   {(sustainabilityData || []).map((item, i) => (
                     <div key={i}>
                       <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-slate-300">{item.name}</span>
-                        <span className="text-slate-400 font-medium">{item.value}%</span>
+                        <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
+                        <span className="text-slate-800 dark:text-slate-400 font-medium">{item.value}%</span>
                       </div>
                       <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
                         <div
@@ -495,7 +495,7 @@ function Dashboard() {
               <div className="lg:col-span-2 glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-white">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                       {activeTab === 'trips' ? 'All Itineraries' : 'Recent Itineraries'}
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">Your travel plans</p>
@@ -535,7 +535,7 @@ function Dashboard() {
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <h4 className="text-sm font-semibold text-white truncate">{trip.destination}</h4>
+                              <h4 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{trip.destination}</h4>
                               <div className="flex gap-1.5 hidden sm:flex">
                                 {trip.tags.map((tag, i) => (
                                   <span key={i} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400">
@@ -591,7 +591,7 @@ function Dashboard() {
               <div className="glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-white">Upcoming</h3>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Upcoming</h3>
                     <p className="text-xs text-slate-400 mt-0.5">Next adventures</p>
                   </div>
                   <Calendar className="w-5 h-5 text-slate-400" />
@@ -614,7 +614,7 @@ function Dashboard() {
                           <div className="flex items-center gap-3">
                             <span className="text-2xl">{trip.image}</span>
                             <div>
-                              <h4 className="text-sm font-semibold text-white">{trip.destination}</h4>
+                              <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{trip.destination}</h4>
                               <p className="text-xs text-slate-400 mt-0.5">{trip.date}</p>
                             </div>
                           </div>
@@ -672,7 +672,7 @@ function Dashboard() {
                   <action.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-white drop-shadow-sm">{action.label}</span>
+                  <span className="text-sm font-semibold text-slate-900 dark:text-white drop-shadow-sm">{action.label}</span>
                   <ArrowRight className="w-4 h-4 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
                 </div>
               </button>
@@ -692,7 +692,7 @@ function Dashboard() {
                   <Sparkles className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-1">AI Travel Insight</h3>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">AI Travel Insight</h3>
                   <p className="text-sm text-slate-400 leading-relaxed max-w-lg">
                     Based on your travel history, we recommend <span className="text-emerald-400 font-medium">Kerala, India</span> for 
                     your next trip — it aligns with your preference for eco-tourism and cultural experiences, 
