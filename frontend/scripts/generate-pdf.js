@@ -231,6 +231,7 @@ async function main() {
         <strong>Week 4 Submission</strong> — Frontend-Backend Integration<br>
         Student: <strong>Srishti</strong> | Roll No: <strong>26100787</strong><br>
         Course: <strong>B.Tech CSE — 4th Year</strong><br>
+        GitHub: <strong>github.com/Srishtiaideveloper/SmartTrip-Planner</strong><br>
         Date: <strong>${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>
       </div>
       <div class="badge">✅ Full-Stack Application — React + FastAPI</div>
