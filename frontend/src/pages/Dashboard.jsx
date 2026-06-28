@@ -6,6 +6,7 @@ import { Loader } from '../components/ui';
 import { useToast } from '../components/ui/Toast';
 import NewTripModal from '../components/NewTripModal';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { apiGet, apiPost, apiDelete } from '../services/api';
 import {
   MapPin,
@@ -69,24 +70,17 @@ const iconMap = {
 
 /* ─── Stat Icon Map ─── */
 const statIconMap = {
-  'Total Trips': { icon: MapPin, color: 'emerald', bgGradient: 'from-emerald-500/10 to-teal-500/10', iconBg: 'from-emerald-500 to-teal-500' },
-  'Destinations': { icon: Globe, color: 'blue', bgGradient: 'from-blue-500/10 to-cyan-500/10', iconBg: 'from-blue-500 to-cyan-500' },
-  'CO₂ Saved': { icon: Leaf, color: 'green', bgGradient: 'from-green-500/10 to-emerald-500/10', iconBg: 'from-green-500 to-emerald-500' },
-  'Eco Score': { icon: Award, color: 'amber', bgGradient: 'from-amber-500/10 to-yellow-500/10', iconBg: 'from-amber-500 to-yellow-500' },
+  'Total Trips': { icon: MapPin, color: 'emerald', bgGradient: 'from-emerald-500/20 to-teal-500/20', iconBg: 'from-emerald-500 to-teal-500' },
+  'Destinations': { icon: Globe, color: 'blue', bgGradient: 'from-blue-500/20 to-cyan-500/20', iconBg: 'from-blue-500 to-cyan-500' },
+  'CO₂ Saved': { icon: Leaf, color: 'green', bgGradient: 'from-green-500/20 to-emerald-500/20', iconBg: 'from-green-500 to-emerald-500' },
+  'Eco Score': { icon: Award, color: 'amber', bgGradient: 'from-amber-500/20 to-yellow-500/20', iconBg: 'from-amber-500 to-yellow-500' },
 };
-
-const quickActions = [
-  { label: 'New Trip', icon: Plus, gradient: 'from-emerald-500 to-teal-500' },
-  { label: 'Explore', icon: Compass, gradient: 'from-blue-500 to-cyan-500' },
-  { label: 'Reports', icon: BarChart3, gradient: 'from-violet-500 to-purple-500' },
-  { label: 'Settings', icon: Settings, gradient: 'from-slate-500 to-slate-600' },
-];
 
 /* ─── Custom Tooltip ─── */
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="glass-card p-3 !bg-slate-900/95 shadow-xl border-white/10">
+      <div className="glass-card p-3 shadow-xl" style={{ background: 'rgba(15,23,42,0.95)' }}>
         <p className="text-xs font-semibold text-white mb-1">{label}</p>
         {payload.map((entry, i) => (
           <p key={i} className="text-xs text-slate-300">
@@ -101,7 +95,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 /* ─── Eco Score Ring ─── */
-function EcoScoreRing({ score, size = 120 }) {
+function EcoScoreRing({ score, size = 120, isDark }) {
   const radius = (size - 12) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
@@ -113,7 +107,7 @@ function EcoScoreRing({ score, size = 120 }) {
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255,255,255,0.05)"
+          stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}
           strokeWidth="8"
           fill="none"
         />
@@ -137,8 +131,8 @@ function EcoScoreRing({ score, size = 120 }) {
         </defs>
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-2xl font-bold text-slate-900 dark:text-white">{score}</span>
-        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">/ 100</span>
+        <span className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{score}</span>
+        <span className={`text-[10px] font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>/ 100</span>
       </div>
     </div>
   );
@@ -151,6 +145,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const toast = useToast();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
+  const { isDark } = useTheme();
   
   const [isNewTripModalOpen, setIsNewTripModalOpen] = useState(false);
 
@@ -215,16 +210,32 @@ function Dashboard() {
     setTrips((prev) => [newTrip, ...prev]);
   };
 
+  // ── Quick Actions handlers ──
+  const quickActions = [
+    { label: 'New Trip', icon: Plus, gradient: 'from-emerald-500 to-teal-500', action: () => setIsNewTripModalOpen(true) },
+    { label: 'Explore', icon: Compass, gradient: 'from-blue-500 to-cyan-500', action: () => setActiveTab('trips') },
+    { label: 'Reports', icon: BarChart3, gradient: 'from-violet-500 to-purple-500', action: () => setActiveTab('analytics') },
+    { label: 'Settings', icon: Settings, gradient: 'from-slate-500 to-slate-600', action: () => toast.info('Settings coming soon!') },
+  ];
+
   // ── Derived data ──
   const completedTrips = trips.filter((t) => t.status === 'completed');
   const upcomingTrips = trips.filter((t) => t.status === 'confirmed' || t.status === 'planning');
-  const filteredTrips = searchQuery
-    ? trips.filter(
+  
+  // Show different trip lists per tab
+  const getDisplayTrips = () => {
+    if (searchQuery) {
+      return trips.filter(
         (t) =>
           t.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
           t.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    : completedTrips;
+      );
+    }
+    if (activeTab === 'trips') return trips;
+    if (activeTab === 'sustainability') return trips.filter(t => t.eco_score >= 90);
+    return completedTrips;
+  };
+  const displayTrips = getDisplayTrips();
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart3 },
@@ -233,15 +244,28 @@ function Dashboard() {
     { id: 'analytics', label: 'Analytics', icon: Activity },
   ];
 
+  // ── Theme-aware color helpers ──
+  const tc = {
+    heading: isDark ? 'text-white' : 'text-slate-900',
+    subtext: isDark ? 'text-slate-400' : 'text-slate-500',
+    body: isDark ? 'text-slate-300' : 'text-slate-600',
+    muted: isDark ? 'text-slate-500' : 'text-slate-400',
+    pageBg: isDark ? 'bg-slate-950' : 'bg-slate-50',
+    cardBg: isDark ? 'bg-white/[0.02]' : 'bg-white/60',
+    cardBorder: isDark ? 'border-white/5' : 'border-slate-200/60',
+    cardHoverBg: isDark ? 'hover:bg-white/[0.05]' : 'hover:bg-white/80',
+    cardHoverBorder: isDark ? 'hover:border-white/10' : 'hover:border-slate-300',
+  };
+
   // ── Loading State ──
   if (authLoading || loadingData) {
     return (
-      <div className="min-h-screen bg-slate-950">
+      <div className={`min-h-screen ${tc.pageBg}`}>
         <Navbar />
         <main className="pt-20 sm:pt-24 pb-12">
           <div className="container-custom flex flex-col items-center justify-center min-h-[60vh] gap-4">
             <Loader variant="spinner" size="lg" />
-            <p className="text-slate-400 text-sm animate-pulse">Loading your travel dashboard...</p>
+            <p className={`text-sm animate-pulse ${tc.subtext}`}>Loading your travel dashboard...</p>
           </div>
         </main>
         <Footer />
@@ -252,15 +276,15 @@ function Dashboard() {
   // ── Error State ──
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950">
+      <div className={`min-h-screen ${tc.pageBg}`}>
         <Navbar />
         <main className="pt-20 sm:pt-24 pb-12">
           <div className="container-custom flex flex-col items-center justify-center min-h-[60vh] gap-4">
             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center">
               <Globe className="w-8 h-8 text-red-400" />
             </div>
-            <h2 className="text-xl font-bold text-white">Failed to load dashboard</h2>
-            <p className="text-sm text-slate-400 text-center max-w-md">{error}</p>
+            <h2 className={`text-xl font-bold ${tc.heading}`}>Failed to load dashboard</h2>
+            <p className={`text-sm text-center max-w-md ${tc.subtext}`}>{error}</p>
             <button
               onClick={() => window.location.reload()}
               className="btn-primary mt-2 text-sm"
@@ -281,7 +305,7 @@ function Dashboard() {
   }));
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className={`min-h-screen ${tc.pageBg}`}>
       <Navbar />
 
       <main className="pt-20 sm:pt-24 pb-12">
@@ -289,17 +313,17 @@ function Dashboard() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
+              <h1 className={`text-2xl sm:text-3xl font-bold mb-1 ${tc.heading}`}>
                 Welcome back, <span className="gradient-text">{user?.name || 'Traveler'}</span> 👋
               </h1>
-              <p className="text-sm sm:text-base text-slate-400">
+              <p className={`text-sm sm:text-base ${tc.subtext}`}>
                 Here's your travel overview for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </p>
             </div>
             <div className="flex items-center gap-3">
               {/* Search */}
               <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${tc.subtext}`} />
                 <input
                   type="text"
                   placeholder="Search trips..."
@@ -309,8 +333,8 @@ function Dashboard() {
                 />
               </div>
               {/* Notifications */}
-              <button className="relative p-2.5 rounded-xl glass hover:bg-white/10 transition-all duration-300">
-                <Bell className="w-5 h-5 text-slate-300" />
+              <button className={`relative p-2.5 rounded-xl glass transition-all duration-300 ${isDark ? 'hover:bg-white/10' : 'hover:bg-slate-100'}`}>
+                <Bell className={`w-5 h-5 ${tc.body}`} />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-400 rounded-full" />
               </button>
               {/* New Trip */}
@@ -332,8 +356,8 @@ function Dashboard() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20'
+                    : `${tc.subtext} ${isDark ? 'hover:text-white hover:bg-white/5' : 'hover:text-slate-900 hover:bg-slate-100'}`
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -349,7 +373,7 @@ function Dashboard() {
               return (
                 <div
                   key={i}
-                  className={`glass-card p-5 sm:p-6 hover:bg-white/[0.08] transition-all duration-500 group cursor-default bg-gradient-to-br ${stat.bgGradient}`}
+                  className={`glass-card p-5 sm:p-6 transition-all duration-500 group cursor-default bg-gradient-to-br ${stat.bgGradient} ${isDark ? 'hover:bg-white/[0.08]' : 'hover:shadow-md'}`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br ${stat.iconBg} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
@@ -357,8 +381,8 @@ function Dashboard() {
                     </div>
                     <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${
                       stat.trend === 'up'
-                        ? 'bg-emerald-500/10 text-emerald-400'
-                        : 'bg-rose-500/10 text-rose-400'
+                        ? 'bg-emerald-500/10 text-emerald-500'
+                        : 'bg-rose-500/10 text-rose-500'
                     }`}>
                       {stat.trend === 'up' ? (
                         <TrendingUp className="w-3 h-3" />
@@ -368,33 +392,31 @@ function Dashboard() {
                       {stat.change}
                     </div>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white drop-shadow-sm mb-1">{stat.value}</div>
-                  <div className="text-xs sm:text-sm text-slate-700 dark:text-white/80">{stat.label}</div>
+                  <div className={`text-2xl sm:text-3xl font-bold mb-1 ${tc.heading}`}>{stat.value}</div>
+                  <div className={`text-xs sm:text-sm ${tc.body}`}>{stat.label}</div>
                 </div>
               );
             })}
           </div>
 
-          {/* Conditional Content based on Active Tab */}
-          
-          {/* Overview & Analytics Tab (Charts) */}
+          {/* ═══════════════ Overview & Analytics Tab: Charts ═══════════════ */}
           {(activeTab === 'overview' || activeTab === 'analytics') && (
             <div className="grid lg:grid-cols-3 gap-5 mb-8">
               {/* Activity Chart */}
               <div className="lg:col-span-2 glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Trip Activity</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Monthly trips & eco score trends</p>
+                    <h3 className={`text-lg font-bold ${tc.heading}`}>Trip Activity</h3>
+                    <p className={`text-xs mt-0.5 ${tc.subtext}`}>Monthly trips & eco score trends</p>
                   </div>
                   <div className="flex items-center gap-4 text-xs">
                     <div className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                      <span className="text-slate-400">Trips</span>
+                      <span className={tc.subtext}>Trips</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                      <span className="text-slate-400">Eco Score</span>
+                      <span className={tc.subtext}>Eco Score</span>
                     </div>
                   </div>
                 </div>
@@ -412,9 +434,9 @@ function Dashboard() {
                             <stop offset="95%" stopColor="#06b6d4" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                        <CartesianGrid strokeDasharray="3 3" stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)'} />
+                        <XAxis dataKey="month" tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 12, fill: isDark ? '#94a3b8' : '#64748b' }} axisLine={false} tickLine={false} />
                         <Tooltip content={<CustomTooltip />} />
                         <Area
                           type="monotone"
@@ -450,10 +472,10 @@ function Dashboard() {
               <div className="glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Eco Impact</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Sustainability breakdown</p>
+                    <h3 className={`text-lg font-bold ${tc.heading}`}>Eco Impact</h3>
+                    <p className={`text-xs mt-0.5 ${tc.subtext}`}>Sustainability breakdown</p>
                   </div>
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium">
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-xs font-medium">
                     <Leaf className="w-3 h-3" />
                     Excellent
                   </div>
@@ -461,7 +483,7 @@ function Dashboard() {
 
                 {/* Score Ring */}
                 <div className="flex justify-center mb-6">
-                  <EcoScoreRing score={statsData?.eco_score || 0} size={140} />
+                  <EcoScoreRing score={statsData?.eco_score || 0} size={140} isDark={isDark} />
                 </div>
 
                 {/* Breakdown */}
@@ -469,10 +491,10 @@ function Dashboard() {
                   {(sustainabilityData || []).map((item, i) => (
                     <div key={i}>
                       <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-slate-700 dark:text-slate-300">{item.name}</span>
-                        <span className="text-slate-800 dark:text-slate-400 font-medium">{item.value}%</span>
+                        <span className={tc.body}>{item.name}</span>
+                        <span className={`font-medium ${tc.heading}`}>{item.value}%</span>
                       </div>
-                      <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/5' : 'bg-slate-200'}`}>
                         <div
                           className="h-full rounded-full transition-all duration-1000 ease-out"
                           style={{
@@ -488,22 +510,24 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Overview, My Trips & Eco Impact Tabs */}
+          {/* ═══════════════ Trip List Section (Overview, My Trips, Eco Impact) ═══════════════ */}
           {(activeTab === 'overview' || activeTab === 'trips' || activeTab === 'sustainability') && (
             <div className="grid lg:grid-cols-3 gap-5 mb-8">
-              {/* Recent Itineraries */}
+              {/* Recent / All Itineraries */}
               <div className="lg:col-span-2 glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                      {activeTab === 'trips' ? 'All Itineraries' : 'Recent Itineraries'}
+                    <h3 className={`text-lg font-bold ${tc.heading}`}>
+                      {activeTab === 'trips' ? 'All Itineraries' : activeTab === 'sustainability' ? 'Top Eco Trips' : 'Recent Itineraries'}
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Your travel plans</p>
+                    <p className={`text-xs mt-0.5 ${tc.subtext}`}>
+                      {activeTab === 'sustainability' ? 'Trips with eco score ≥ 90' : 'Your travel plans'}
+                    </p>
                   </div>
                   {activeTab === 'overview' && (
                     <button 
                       onClick={() => setActiveTab('trips')}
-                      className="flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 font-medium transition-colors duration-300"
+                      className="flex items-center gap-1.5 text-xs text-emerald-500 hover:text-emerald-400 font-medium transition-colors duration-300"
                     >
                       View All
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -512,47 +536,52 @@ function Dashboard() {
                 </div>
 
                 <div className="space-y-3">
-                  {filteredTrips.length === 0 ? (
+                  {displayTrips.length === 0 ? (
                     <div className="text-center py-8">
-                      <Map className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                      <p className="text-sm text-slate-400">
-                        {searchQuery ? 'No trips match your search' : 'No trips yet'}
+                      <Map className={`w-10 h-10 mx-auto mb-3 ${tc.muted}`} />
+                      <p className={`text-sm ${tc.subtext}`}>
+                        {searchQuery ? 'No trips match your search' : 'No trips yet — create your first trip!'}
                       </p>
+                      {!searchQuery && (
+                        <button onClick={() => setIsNewTripModalOpen(true)} className="btn-primary mt-4 text-sm">
+                          <Plus className="w-4 h-4 inline mr-1" /> Create Trip
+                        </button>
+                      )}
                     </div>
                   ) : (
-                    filteredTrips.map((trip) => {
+                    displayTrips.map((trip) => {
                       const TripIcon = iconMap[trip.image] || Globe;
                       return (
                         <div
                           key={trip.id}
-                          className="flex items-center gap-4 p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 hover:border-white/10 transition-all duration-300 group cursor-pointer"
+                          className={`flex items-center gap-4 p-4 rounded-xl border transition-all duration-300 group cursor-pointer ${tc.cardBg} ${tc.cardBorder} ${tc.cardHoverBg} ${tc.cardHoverBorder}`}
                         >
                           {/* Icon */}
                           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 flex items-center justify-center flex-shrink-0 group-hover:from-emerald-500/20 group-hover:to-teal-500/20 transition-all duration-300">
-                            <TripIcon className="w-5 h-5 text-emerald-400" />
+                            <TripIcon className="w-5 h-5 text-emerald-500" />
                           </div>
 
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <h4 className="text-sm font-semibold text-slate-900 dark:text-white truncate">{trip.destination}</h4>
+                              <h4 className={`text-sm font-semibold truncate ${tc.heading}`}>{trip.destination}</h4>
                               <div className="flex gap-1.5 hidden sm:flex">
                                 {trip.tags.map((tag, i) => (
-                                  <span key={i} className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400">
+                                  <span key={i} className={`px-2 py-0.5 text-[10px] font-medium rounded-full ${isDark ? 'bg-white/5 text-slate-400' : 'bg-slate-100 text-slate-500'}`}>
                                     {tag}
                                   </span>
                                 ))}
                               </div>
                             </div>
                             <div className="flex items-center gap-3 mt-1">
-                              <span className="flex items-center gap-1 text-xs text-slate-400">
+                              <span className={`flex items-center gap-1 text-xs ${tc.subtext}`}>
                                 <Clock className="w-3 h-3" />
                                 {trip.duration}
                               </span>
-                              <span className="text-xs text-slate-500">•</span>
-                              <span className="text-xs text-slate-400">{trip.budget}</span>
-                              <span className="text-xs text-slate-500">•</span>
-                              <span className="text-xs text-slate-500">{trip.date}</span>
+                              <span className={`text-xs ${tc.muted}`}>•</span>
+                              <span className={`text-xs ${tc.subtext}`}>{trip.budget}</span>
+                              <span className={`text-xs ${tc.muted}`}>•</span>
+                              <span className={`text-xs ${tc.muted}`}>{trip.date}</span>
                             </div>
                           </div>
 
@@ -560,10 +589,10 @@ function Dashboard() {
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${
                               trip.eco_score >= 95
-                                ? 'bg-emerald-500/10 text-emerald-400'
+                                ? 'bg-emerald-500/10 text-emerald-500'
                                 : trip.eco_score >= 90
-                                ? 'bg-teal-500/10 text-teal-400'
-                                : 'bg-cyan-500/10 text-cyan-400'
+                                ? 'bg-teal-500/10 text-teal-500'
+                                : 'bg-cyan-500/10 text-cyan-500'
                             }`}>
                               <Leaf className="w-3 h-3" />
                               {trip.eco_score}
@@ -573,12 +602,12 @@ function Dashboard() {
                                 e.stopPropagation();
                                 handleDeleteTrip(trip.id);
                               }}
-                              className="p-1.5 rounded-lg text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 opacity-0 group-hover:opacity-100"
+                              className={`p-1.5 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 ${isDark ? 'text-slate-600 hover:text-red-400 hover:bg-red-500/10' : 'text-slate-400 hover:text-red-500 hover:bg-red-50'}`}
                               title="Delete trip"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                            <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-emerald-400 transition-colors duration-300" />
+                            <ArrowUpRight className={`w-4 h-4 group-hover:text-emerald-500 transition-colors duration-300 ${tc.muted}`} />
                           </div>
                         </div>
                       );
@@ -591,50 +620,53 @@ function Dashboard() {
               <div className="glass-card p-5 sm:p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Upcoming</h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Next adventures</p>
+                    <h3 className={`text-lg font-bold ${tc.heading}`}>Upcoming</h3>
+                    <p className={`text-xs mt-0.5 ${tc.subtext}`}>Next adventures</p>
                   </div>
-                  <Calendar className="w-5 h-5 text-slate-400" />
+                  <Calendar className={`w-5 h-5 ${tc.subtext}`} />
                 </div>
 
                 <div className="space-y-4">
                   {upcomingTrips.length === 0 ? (
                     <div className="text-center py-8">
-                      <Compass className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-                      <p className="text-sm text-slate-400">No upcoming trips planned</p>
+                      <Compass className={`w-10 h-10 mx-auto mb-3 ${tc.muted}`} />
+                      <p className={`text-sm ${tc.subtext}`}>No upcoming trips planned</p>
+                      <button onClick={() => setIsNewTripModalOpen(true)} className="btn-primary mt-4 text-sm">
+                        <Plus className="w-4 h-4 inline mr-1" /> Plan One
+                      </button>
                     </div>
                   ) : (
-                    upcomingTrips.map((trip, i) => (
+                    upcomingTrips.map((trip) => (
                       <div
                         key={trip.id}
-                        className="p-4 rounded-xl bg-white/[0.02] border border-white/5 hover:border-emerald-500/20 hover:bg-white/[0.05] transition-all duration-300 group cursor-pointer"
+                        className={`p-4 rounded-xl border transition-all duration-300 group cursor-pointer ${tc.cardBg} ${tc.cardBorder} hover:border-emerald-500/20 ${tc.cardHoverBg}`}
                       >
                         {/* Header */}
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
                             <span className="text-2xl">{trip.image}</span>
                             <div>
-                              <h4 className="text-sm font-semibold text-slate-900 dark:text-white">{trip.destination}</h4>
-                              <p className="text-xs text-slate-400 mt-0.5">{trip.date}</p>
+                              <h4 className={`text-sm font-semibold ${tc.heading}`}>{trip.destination}</h4>
+                              <p className={`text-xs mt-0.5 ${tc.subtext}`}>{trip.date}</p>
                             </div>
                           </div>
                           <span className={`px-2 py-0.5 rounded-md text-[10px] font-semibold uppercase tracking-wider ${
                             trip.status === 'confirmed'
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-amber-500/10 text-amber-400'
+                              ? 'bg-emerald-500/10 text-emerald-500'
+                              : 'bg-amber-500/10 text-amber-500'
                           }`}>
                             {trip.status}
                           </span>
                         </div>
 
                         {/* Details */}
-                        <div className="flex items-center gap-3 text-xs text-slate-400 mb-3">
+                        <div className={`flex items-center gap-3 text-xs mb-3 ${tc.subtext}`}>
                           <span className="flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {trip.duration}
                           </span>
                           <span>{trip.budget}</span>
-                          <span className="flex items-center gap-1 text-emerald-400">
+                          <span className="flex items-center gap-1 text-emerald-500">
                             <Leaf className="w-3 h-3" />
                             {trip.eco_score}
                           </span>
@@ -645,7 +677,7 @@ function Dashboard() {
                           {trip.activities.map((activity, j) => (
                             <span
                               key={j}
-                              className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-white/5 text-slate-400 border border-white/5"
+                              className={`px-2 py-0.5 text-[10px] font-medium rounded-full border ${isDark ? 'bg-white/5 text-slate-400 border-white/5' : 'bg-slate-50 text-slate-500 border-slate-200'}`}
                             >
                               {activity}
                             </span>
@@ -659,53 +691,56 @@ function Dashboard() {
             </div>
           )}
 
-          {/* Quick Actions (only show on overview) */}
+          {/* ═══════════════ Quick Actions (Overview only) ═══════════════ */}
           {activeTab === 'overview' && (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {quickActions.map((action, i) => (
-              <button
-                key={i}
-                onClick={action.label === 'New Trip' ? () => setIsNewTripModalOpen(true) : undefined}
-                className={`glass-card p-5 hover:bg-white/[0.08] transition-all duration-500 group text-left bg-gradient-to-br ${action.gradient}`}
-              >
-                <div className={`w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                  <action.icon className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-900 dark:text-white drop-shadow-sm">{action.label}</span>
-                  <ArrowRight className="w-4 h-4 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
-                </div>
-              </button>
-            ))}
-          </div>
+              {quickActions.map((action, i) => (
+                <button
+                  key={i}
+                  onClick={action.action}
+                  className={`glass-card p-5 transition-all duration-500 group text-left bg-gradient-to-br ${action.gradient} ${isDark ? 'hover:bg-white/[0.08]' : 'hover:shadow-lg'}`}
+                >
+                  <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <action.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-semibold text-white drop-shadow-md">{action.label}</span>
+                    <ArrowRight className="w-4 h-4 text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
 
-          {/* AI Insights Banner (only show on overview and analytics) */}
+          {/* ═══════════════ AI Insights Banner (Overview & Analytics) ═══════════════ */}
           {(activeTab === 'overview' || activeTab === 'analytics') && (
-          <div className="glass-card p-6 sm:p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-60 h-60 bg-emerald-500/10 rounded-full blur-[80px]" />
-            <div className="absolute bottom-0 left-10 w-40 h-40 bg-cyan-500/8 rounded-full blur-[60px]" />
-            
-            <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-lg flex-shrink-0">
-                  <Sparkles className="w-6 h-6 text-white" />
+            <div className="glass-card p-6 sm:p-8 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-60 h-60 bg-emerald-500/10 rounded-full blur-[80px]" />
+              <div className="absolute bottom-0 left-10 w-40 h-40 bg-cyan-500/8 rounded-full blur-[60px]" />
+              
+              <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className={`text-lg font-bold mb-1 ${tc.heading}`}>AI Travel Insight</h3>
+                    <p className={`text-sm leading-relaxed max-w-lg ${tc.body}`}>
+                      Based on your travel history, we recommend <span className="text-emerald-500 font-medium">Kerala, India</span> for 
+                      your next trip — it aligns with your preference for eco-tourism and cultural experiences, 
+                      with an estimated eco-score of <span className="text-emerald-500 font-medium">96</span>.
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">AI Travel Insight</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed max-w-lg">
-                    Based on your travel history, we recommend <span className="text-emerald-400 font-medium">Kerala, India</span> for 
-                    your next trip — it aligns with your preference for eco-tourism and cultural experiences, 
-                    with an estimated eco-score of <span className="text-emerald-400 font-medium">96</span>.
-                  </p>
-                </div>
+                <button 
+                  onClick={() => toast.info('AI recommendations coming soon!')}
+                  className="btn-primary flex items-center gap-2 text-sm whitespace-nowrap flex-shrink-0"
+                >
+                  <Zap className="w-4 h-4" />
+                  Explore This
+                </button>
               </div>
-              <button className="btn-primary flex items-center gap-2 text-sm whitespace-nowrap flex-shrink-0">
-                <Zap className="w-4 h-4" />
-                Explore This
-              </button>
             </div>
-          </div>
           )}
         </div>
       </main>

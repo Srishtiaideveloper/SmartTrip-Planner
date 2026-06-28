@@ -89,7 +89,7 @@ export default function NewTripModal({ isOpen, onClose, onTripCreated }) {
           <Button variant="secondary" type="button" onClick={onClose} disabled={loading}>
             Cancel
           </Button>
-          <Button variant="primary" type="submit" isLoading={loading}>
+          <Button variant="primary" type="submit" loading={loading}>
             Create Trip
           </Button>
         </div>
