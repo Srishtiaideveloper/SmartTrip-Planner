@@ -368,8 +368,8 @@ function Dashboard() {
                       {stat.change}
                     </div>
                   </div>
-                  <div className="text-2xl sm:text-3xl font-bold text-white drop-shadow-sm mb-1">{stat.value}</div>
-                  <div className="text-xs sm:text-sm text-white/80">{stat.label}</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white drop-shadow-sm mb-1">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-slate-700 dark:text-white/80">{stat.label}</div>
                 </div>
               );
             })}
